@@ -3,6 +3,7 @@
 #include <string.h>
 #include <sys/file.h>
 #include <sys/types.h>
+#include <unistd.h>
 #include "DynamicStack.h"
 #define SIZE 1024
 
@@ -29,14 +30,15 @@ int main(int argc, const char *argv[])
                 /* if could not open input file */
                 if (fd<1)
                 {
-                    printf("ERROR: Could not open input file!\n");
+                    write(STDERR_FILENO,"ERROR: Could not open input file!", 33);
                     exit(0);
                 }
 
                 /* else if opened input file successfully */
                 else
                 {
-                    printf("Opened Input File Successfully!\n");
+                    write(STDOUT_FILENO,"Opened Input File Successfully!", 31);
+                    printf("\n");
                     i++;
                 }
             }
@@ -48,15 +50,16 @@ int main(int argc, const char *argv[])
                 /* if could not open output file */
                 if (fd2<1)
                 {
-                    printf("ERROR: Could not open output file!\n");
+                    write(STDERR_FILENO,"ERROR: Could not open output file!", 34);
+                    printf("\n");
 
-                    //exit(0);
                 }
 
                 /* else if opened output file successfully */
                 else
                 {
-                    printf("Opened Output File Successfully!\n");
+                    write(STDOUT_FILENO,"Opened Output File Successfully!", 32);
+                    printf("\n");
                     i++;
                 }
             }
@@ -71,7 +74,9 @@ int main(int argc, const char *argv[])
     /* else if only one argument entered, then use default setups */
     else if (argc == 1)
     {
-        printf("\nInvalid input data -> Using default data! \n\n");
+        printf("\n");
+        write(STDERR_FILENO,"Invalid input data -> Using default data!", 41);
+        printf("\n\n");
         strcpy(inputData, "stdin");
         strcpy(outputData, "stdout");
         bValue = 10;
@@ -84,6 +89,7 @@ int main(int argc, const char *argv[])
     int xTime;              // the number of blocks in the string need to be reversed
     int remainder;          // the number of characters in the last block
     int index;
+    int tempChar;
 
     index = bValue;         // the max index in the current block
 
@@ -91,8 +97,9 @@ int main(int argc, const char *argv[])
     /* if using stdin */
     if (!(strcmp(inputData, "stdin")))
     {
-        printf("Enter a desired string: ");
-        scanf("%s", inputStr);
+        printf("\n\nEnter a string and then use \"CTRL + d\" instead of \"Enter key\" when finish.\n\n");
+        read(STDIN_FILENO, &inputStr, sizeof(char)*1024);
+        printf("\n");
 
         length = strlen(inputStr);          // determine the length of the input string
         xTime = length / bValue;            // calculate the number of blocks in size bValue
@@ -108,7 +115,8 @@ int main(int argc, const char *argv[])
                 {
                     for (int j=0; j<bValue; j++)
                     {
-                        printf("%c", inputStr[index-1-j]);      // print character to the screen
+                        tempChar = inputStr[index-1-j];
+                        write(STDOUT_FILENO, &tempChar, 1);     // write to STDOUT
                     }
                     /* if this is last b-sized block, then apply remainder */
                     if ((i+1) == xTime)
@@ -116,27 +124,28 @@ int main(int argc, const char *argv[])
                     /*else, continue using bValue */
                     else
                     { index = index + bValue; }
-                } // for loop
+                }
 
                 if (remainder > 0)
                 {
                     for (int j=0; j<remainder; j++)
                     {
-                    printf("%c",inputStr[index-1-j]);       // print character to the screen
+                        tempChar = inputStr[index-1-j];
+                        write(STDOUT_FILENO, &tempChar, 1);     // write to STDOUT
                     }
                 }
-            } // if (length >= bValue)
+            }
 
             /* else if the length of input string is less than bValue */
             else if (length < bValue)
             {
                 for (int j=0; j<length; j++)
                 {
-                    printf("%c",inputStr[length-1-j]);      // print character to the screen
+                    tempChar = inputStr[length-1-j];
+                    write(STDOUT_FILENO, &tempChar, 1);         // write to STDOUT
                 }
             }
-        } //if (!(strcmp(outputData, "stdout")))
-
+        }
 
         /* else, using output file */
         else
@@ -156,7 +165,7 @@ int main(int argc, const char *argv[])
                     /*else, continue using bValue */
                     else
                     { index = index + bValue; }
-                } // for loop
+                }
 
                 if (remainder > 0)
                 {
@@ -165,7 +174,7 @@ int main(int argc, const char *argv[])
                         write(fd2, &inputStr[index-1-j],1); // write a character to output file
                     }
                 }
-            } //if (length >= bValue)
+            }
 
             /* else if the length of input string is less than bValue */
             else if (length < bValue)
@@ -178,12 +187,12 @@ int main(int argc, const char *argv[])
 
             if (strcmp(outputData, "stdout") != 0)
             {
-                printf("\nWrote to Output File Successfully!\n");
+                printf("\n");
+                write(STDOUT_FILENO,"Wrote to Output File Successfully!", 34);
+                printf("\n");
             }
-
         }
-
-    } // if (!(strcmp(inputData, "stdin")))
+    }
 
 /********************************************************************************************************************************/
 
@@ -216,20 +225,24 @@ int main(int argc, const char *argv[])
                 /* if using stdout */
                 if (!(strcmp(outputData, "stdout")))
                 {
-                    printf("%c", tempChar);             // print the character to the screen
+                    write(STDOUT_FILENO, &tempChar, 1);
                 }
                 /* else, using an output file */
                 else
                 {
                     write(fd2, &tempChar,1);            // write the character to output file
                 }
-            } // for loop
+            }
         }
         if (strcmp(outputData, "stdout") != 0)
         {
-            printf("\nWrote to Output File Successfully!\n");
+                printf("\n");
+                write(STDOUT_FILENO,"Wrote to Output File Successfully!", 34);
+                printf("\n");
         }
     }
+    close(fd);
+    close(fd2);
 
     return 0;
 }
